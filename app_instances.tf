@@ -16,16 +16,6 @@ resource "aws_security_group" "app" {
   }
 }
 
-resource "aws_security_group_rule" "allow_alb_http" {
-  type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.app.id
-  source_security_group_id = aws_security_group.alb.id
-  description              = "Allow HTTP from ALB"
-}
-
 resource "aws_security_group_rule" "allow_bastion_ssh" {
   type                     = "ingress"
   from_port                = 22
@@ -37,11 +27,22 @@ resource "aws_security_group_rule" "allow_bastion_ssh" {
 }
 
 resource "aws_instance" "app_01" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.app_01.id
-  vpc_security_group_ids = [aws_security_group.app.id]
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = "t3.micro"
+  subnet_id                   = aws_subnet.app_01.id
+  vpc_security_group_ids      = [aws_security_group.app.id]
   associate_public_ip_address = false
+  iam_instance_profile        = aws_iam_instance_profile.ssm.name
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              amazon-linux-extras enable nginx1
+              yum install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              echo "Hello from app_01" > /usr/share/nginx/html/index.html
+              EOF
 
   tags = {
     Name        = "app-01-instance"
@@ -50,11 +51,23 @@ resource "aws_instance" "app_01" {
 }
 
 resource "aws_instance" "app_02" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.app_02.id
-  vpc_security_group_ids = [aws_security_group.app.id]
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = "t3.micro"
+  subnet_id                   = aws_subnet.app_02.id
+  vpc_security_group_ids      = [aws_security_group.app.id]
   associate_public_ip_address = false
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              amazon-linux-extras enable nginx1
+              yum install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              echo "Hello from app_02" > /usr/share/nginx/html/index.html
+              EOF
+
+  iam_instance_profile = aws_iam_instance_profile.ssm.name
 
   tags = {
     Name        = "app-02-instance"
@@ -62,14 +75,4 @@ resource "aws_instance" "app_02" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "app_01" {
-  target_group_arn = aws_lb_target_group.main.arn
-  target_id        = aws_instance.app_01.id
-  port             = 80
-}
 
-resource "aws_lb_target_group_attachment" "app_02" {
-  target_group_arn = aws_lb_target_group.main.arn
-  target_id        = aws_instance.app_02.id
-  port             = 80
-}
