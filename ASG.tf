@@ -1,7 +1,7 @@
 resource "aws_ami_from_instance" "app_image" {
   name                    = "app-ami-${var.environment}-${replace(timestamp(), ":", "-")}"
-  source_instance_id      = "i-0b7a0f2542dcad5ac"
-  description             = "AMI created from instance i-0b7a0f2542dcad5ac for ASG"
+  source_instance_id      = aws_instance.app_01.id
+  description             = "AMI created from existing app_01 instance for ASG"
   snapshot_without_reboot = true
 
   tags = {
@@ -43,9 +43,9 @@ resource "aws_launch_template" "app" {
 
 resource "aws_autoscaling_group" "app" {
   name             = "app-asg"
-  max_size         = 3
+  max_size         = 5
   min_size         = 1
-  desired_capacity = 2
+  desired_capacity = 5
 
   launch_template {
     id      = aws_launch_template.app.id
