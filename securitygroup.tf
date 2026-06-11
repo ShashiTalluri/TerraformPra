@@ -23,3 +23,5 @@ resource "aws_security_group" "bastion" {
     Environment = var.environment
   }
 }
+
+
