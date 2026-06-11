@@ -53,6 +53,26 @@ output "nat_gateway_eip" {
   value       = aws_eip.nat.public_ip
 }
 
+output "app_target_group_arn" {
+  description = "ARN of the app target group"
+  value       = aws_lb_target_group.app.arn
+}
+
+output "app_target_group_name" {
+  description = "Name of the app target group"
+  value       = aws_lb_target_group.app.name
+}
+
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = aws_lb.app.dns_name
+}
+
+output "alb_arn" {
+  description = "ARN of the Application Load Balancer"
+  value       = aws_lb.app.arn
+}
+
 output "aws_instance" {
   value = aws_instance.bastion.ami
 }
