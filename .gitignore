@@ -1,4 +1,4 @@
-# Terraform
+﻿# Terraform
 *.tfstate
 *.tfstate.backup
 .terraform/
@@ -38,4 +38,3 @@ ENV/
 
 # Logs
 *.log
-.terraform/
